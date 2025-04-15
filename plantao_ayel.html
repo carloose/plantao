@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plantão Table</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: rgb(0, 0, 102);
+        color: rgb(231, 244, 255);}
+        input, button { margin: 5px; padding: 5px; }
+        table { border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        .day-inputs { margin: 15px 0;
+        text-align: center; }
+        .input-group { margin-bottom: 10px;
+        text-align: center;}
+    </style>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <h2 style="text-align: center;">PLANTÃO</h2>
+    
+    <div class="input-group">
+        <label>Número de Plantões:</label>
+        <input type="number" id="numDays" min="1">
+    </div>
+    <div class="input-group">
+        <label>Número de Técnicos:</label>
+        <input type="number" id="numTech" min="1">
+    </div>
+    <div class="input-group">
+        <label>Número de Administrativo:</label>
+        <input type="number" id="numAdm" min="1">
+    </div>
+
+    <div style="text-align: center;">
+    <button onclick="createInputFields()">Criar Campos</button>
+    </div>
+    
+    <div id="dayInputs" class="day-inputs"></div>
+    
+    <div style="text-align: center;">
+    <button onclick="generateTable()" style="display:none;" id="genTableBtn">Enviar</button>
+    <button onclick="shuffleColumns()" style="display:none;" id="shuffleBtn">Embaralhar</button>
+    </div>
+
+    <div id="tableContainer"></div>
+
+    <script>
+        
+        let techValues = [];
+        let admValues = [];
+
+        function createInputFields() {
+            const numTech = parseInt(document.getElementById('numTech').value);
+            const numAdm = parseInt(document.getElementById('numAdm').value);
+            
+            let inputsHTML = '<h3>Digite os nomes:</h3>';
+            
+            // Create inputs for technicians
+            inputsHTML += '<h4>Técnicos</h4>';
+            for (let t = 1; t <= numTech; t++) {
+                inputsHTML += `
+                    <div class="input-group">
+                        <label>Técnico ${t}:</label>
+                        <input type="text" id="tech${t}" placeholder="Nome do Técnico">
+                    </div>
+                `;
+            }
+
+            // Create inputs for administrative
+            inputsHTML += '<h4>Administrativo</h4>';
+            for (let a = 1; a <= numAdm; a++) {
+                inputsHTML += `
+                    <div class="input-group">
+                        <label>Administrativo ${a}:</label>
+                        <input type="text" id="adm${a}" placeholder="Nome do Administrativo">
+                    </div>
+                `;
+            }
+            
+            document.getElementById('dayInputs').innerHTML = inputsHTML;
+            document.getElementById('genTableBtn').style.display = 'inline-block';
+        }
+        
+        function generateTable() {
+            const numDays = parseInt(document.getElementById('numDays').value);
+            const numTech = parseInt(document.getElementById('numTech').value);
+            const numAdm = parseInt(document.getElementById('numAdm').value);
+            
+            // Collect technician names
+            techValues = [];
+            for (let t = 1; t <= numTech; t++) {
+                const val = document.getElementById(`tech${t}`).value || `Técnico ${t}`;
+                techValues.push(val);
+            }
+            
+            // Collect administrative names
+            admValues = [];
+            for (let a = 1; a <= numAdm; a++) {
+                const val = document.getElementById(`adm${a}`).value || `Adm ${a}`;
+                admValues.push(val);
+            }
+            
+            // Generate table
+            let tableHTML = `
+                <table class="table">
+                    <tr>
+                        <th style="color: black">Fim de semana</th style="color: black">
+                        <th style="color: black">Técnicos</th style="color: black">
+                        <th style="color: black">Administrativo</th>
+                    </tr>
+            `;
+            
+            for (let day = 1; day <= numDays; day++) {
+                // Get values with repetition if needed
+                const techIndex = (day - 1) % techValues.length;
+                const admIndex = (day - 1) % admValues.length;
+                
+                tableHTML += `
+                    <tr>
+                        <td>${day}°</td>
+                        <td>${techValues[techIndex]}</td>
+                        <td>${admValues[admIndex]}</td>
+                    </tr>
+                `;
+            }
+            
+            tableHTML += `</table>`;
+            document.getElementById('tableContainer').innerHTML = tableHTML;
+            document.getElementById('shuffleBtn').style.display = 'inline-block';
+        }
+        
+        function shuffleColumns() {
+            const table = document.querySelector('table');
+            if (!table) return;
+            
+            // Get all rows except header
+            const rows = Array.from(table.rows).slice(1);
+            
+            // Get current values from each column
+            const currentTech = rows.map(row => row.cells[1].textContent);
+            const currentAdm = rows.map(row => row.cells[2].textContent);
+            
+            // Shuffle the values
+            shuffleArray(currentTech);
+            shuffleArray(currentAdm);
+            
+            // Put shuffled values back
+            rows.forEach((row, index) => {
+                row.cells[1].textContent = currentTech[index];
+                row.cells[2].textContent = currentAdm[index];
+            });
+        }
+        
+        // Fisher-Yates shuffle algorithm
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    </script>
+</body>
+</html>
